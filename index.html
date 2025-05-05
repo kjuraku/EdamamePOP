@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -13,7 +13,7 @@
       background: #fff;
       color: #333;
       text-align: center;
-      font-family: sans-serif;
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
       overflow: hidden;
       touch-action: none;
     }
@@ -46,31 +46,41 @@
       z-index: 1;
     }
     .pod-image {
-      max-width: 80vw;
-      max-height: 40vh;
+      max-width: 90vw;
+      max-height: 60vh;
       width: auto;
       height: auto;
       pointer-events: none;
       box-sizing: border-box;
-      /* Remove position: absolute and centering transforms */
       display: block;
       margin: 0 auto;
+      transition: transform 0.7s cubic-bezier(.68,-0.55,.27,1.55), filter 0.7s;
+    }
+    .grow {
+      animation: grow-pop 1.2s cubic-bezier(.68,-0.55,.27,1.55) forwards;
+      z-index: 10;
+    }
+    @keyframes grow-pop {
+      0%   { transform: scale(1); filter: brightness(1); }
+      60%  { transform: scale(1.25) rotate(-3deg); filter: brightness(1.1); }
+      80%  { transform: scale(1.15) rotate(2deg); filter: brightness(1.2); }
+      100% { transform: scale(1.18) rotate(0deg); filter: brightness(1.1); }
     }
     @media (orientation: landscape) {
       .pod-image {
-        max-width: 50vw;
-        max-height: 60vh;
+        max-width: 60vw;
+        max-height: 80vh;
       }
       #prompt {
         font-size: 1.7em;
       }
     }
     .openPod { display: none; }
-    .shake { animation: shake 0.5s; }
+    .shake { animation: shake 1.2s; }
     @keyframes shake {
       0%, 100% { transform: scale(1) rotate(0deg); }
-      20%, 60% { transform: scale(1.05) rotate(-8deg); }
-      40%, 80% { transform: scale(1.05) rotate(8deg); }
+      10%, 30%, 50%, 70%, 90% { transform: scale(1.05) rotate(-8deg); }
+      20%, 40%, 60%, 80% { transform: scale(1.05) rotate(8deg); }
     }
     #overlay {
       position: fixed; top: 0; left: 0;
@@ -92,31 +102,67 @@
       display: none; z-index: 3;
       color: #000; text-shadow: 2px 2px 0 #fff;
       pointer-events: none;
+      opacity: 0;
     }
-    #resultText.red { color: #e00000; text-shadow: 2px 2px 0 #fff; }
-    #resultText.gold { color: goldenrod; text-shadow: 2px 2px 5px #000; }
+    #resultText.red {
+      color: #e00000;
+      text-shadow: 2px 2px 0 #fff;
+      animation: batsu-pop 1.2s cubic-bezier(.68,-0.55,.27,1.55) forwards;
+      opacity: 1;
+    }
+    #resultText.green {
+      color: #0c0;
+      text-shadow: 2px 2px 0 #fff, 0 0 10px #bfffba;
+      animation: green-pop 1.5s cubic-bezier(.68,-0.55,.27,1.55) forwards;
+      opacity: 1;
+    }
+    #resultText.gold {
+      color: goldenrod;
+      text-shadow: 2px 2px 5px #000, 0 0 20px gold;
+      animation: gold-pop 1.7s cubic-bezier(.68,-0.55,.27,1.55) forwards;
+      opacity: 1;
+    }
+    @keyframes batsu-pop {
+      0%   { transform: scale(0.7); opacity: 0; }
+      60%  { transform: scale(1.2) rotate(-6deg); opacity: 1; }
+      80%  { transform: scale(1.1) rotate(3deg); }
+      100% { transform: scale(1.15) rotate(0deg); }
+    }
+    @keyframes green-pop {
+      0%   { transform: scale(0.7); opacity: 0; }
+      60%  { transform: scale(1.3) rotate(-4deg); opacity: 1; }
+      80%  { transform: scale(1.15) rotate(2deg); }
+      100% { transform: scale(1.18) rotate(0deg); }
+    }
+    @keyframes gold-pop {
+      0%   { transform: scale(0.7); opacity: 0; }
+      60%  { transform: scale(1.4) rotate(-8deg); opacity: 1; }
+      80%  { transform: scale(1.2) rotate(4deg); }
+      100% { transform: scale(1.25) rotate(0deg); }
+    }
     .sparkle {
       position: absolute;
-      font-size: 1.5em;
+      font-size: 2em;
       color: #0c0;
       opacity: 1;
       pointer-events: none;
       z-index: 5;
     }
-    .sparkle.animate { animation: sparkle 1s forwards; }
+    .sparkle.animate { animation: sparkle 1.2s forwards; }
     @keyframes sparkle {
       from { transform: scale(0.5); opacity: 1; }
-      to   { transform: scale(1.5); opacity: 0; }
+      to   { transform: scale(1.7); opacity: 0; }
     }
     .confetti {
       position: absolute;
-      width: 8px; height: 8px;
+      width: 12px; height: 12px;
       background: gold;
       top: 0; opacity: 0;
       pointer-events: none;
       z-index: 5;
+      border-radius: 3px;
     }
-    .confetti.animate { animation: confdrop 2s forwards; }
+    .confetti.animate { animation: confdrop 2.2s forwards; }
     @keyframes confdrop {
       0%   { opacity: 1; transform: translateY(0) rotate(0deg); }
       100% { opacity: 1; transform: translateY(100vh) rotate(720deg); }
@@ -183,6 +229,7 @@
     prompt.style.display    = 'block';
     document.querySelectorAll('.sparkle').forEach(s => s.remove());
     document.querySelectorAll('.confetti').forEach(c => c.remove());
+    [podGreen, podGold, podRed].forEach(img => img.classList.remove('grow'));
     animating = false;
   }
   resetGame();
@@ -208,17 +255,20 @@
       if (outcome === 'gold')  { podElement = podGold; }
       if (podElement) {
         podElement.style.display = 'block';
+        podElement.classList.add('grow');
       }
       if (outcome === 'green') {
+        resultText.innerText = 'やった！';
+        resultText.className = 'green';
+        resultText.style.display = 'block';
         const podRect = podElement.getBoundingClientRect();
         const containerRect = podWrapper.getBoundingClientRect();
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 7; i++) {
           const sp = document.createElement('div');
           sp.className = 'sparkle';
           sp.textContent = '✨';
-          // Position sparkles randomly around the center of the pod
           const angle = Math.random() * 2 * Math.PI;
-          const radius = 40 + Math.random() * 30;
+          const radius = 60 + Math.random() * 40;
           const centerX = podRect.left + podRect.width / 2 - containerRect.left;
           const centerY = podRect.top + podRect.height / 2 - containerRect.top;
           sp.style.left = (centerX + Math.cos(angle) * radius) + 'px';
@@ -229,15 +279,15 @@
       } else if (outcome === 'red') {
         overlay.style.display = 'block';
         overlay.classList.add('flash');
-        resultText.innerText = 'Batsu!';
-        resultText.classList.add('red');
+        resultText.innerText = 'バツ！';
+        resultText.className = 'red';
         resultText.style.display = 'block';
       } else if (outcome === 'gold') {
-        resultText.innerText = 'Jackpot!';
-        resultText.classList.add('gold');
+        resultText.innerText = '大当たり！';
+        resultText.className = 'gold';
         resultText.style.display = 'block';
         const colors = ['gold', 'gold', 'gold', 'yellow', 'orange', 'goldenrod'];
-        for (let j = 0; j < 20; j++) {
+        for (let j = 0; j < 30; j++) {
           const conf = document.createElement('div');
           conf.className = 'confetti';
           conf.style.left = Math.random() * 100 + '%';
@@ -248,8 +298,8 @@
           setTimeout(() => { conf.classList.add('animate'); }, 50);
         }
       }
-      setTimeout(resetGame, 3000);
-    }, 500);
+      setTimeout(resetGame, outcome === 'gold' ? 3500 : 2500);
+    }, 1200);
   }
   container.addEventListener('touchstart', (e) => {
     if (e.touches.length > 1 && !animating) {
