@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Edamame Pop Game</title>
+  <style>
+    body { margin: 0; background: #fff; color: #333; text-align: center; 
+           font-family: sans-serif; overflow: hidden; }
+    #game-container { position: relative; width: 100%; height: 100vh; }
+    #prompt {
+      position: absolute; top: 10%; width: 100%; 
+      font-size: 2em; font-weight: bold;
+    }
+    .pod-image {
+      position: absolute; bottom: 5%; left: 50%;
+      transform: translateX(-50%); 
+      max-width: 50%; height: auto;
+      z-index: 1;
+    }
+    .openPod { display: none; }
+    .shake { animation: shake 0.5s; }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
+      20%, 60% { transform: translateX(-10px) rotate(-8deg); }
+      40%, 80% { transform: translateX(10px) rotate(8deg); }
+    }
+    #overlay {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(255,0,0,0.5);
+      display: none; z-index: 2;
+    }
+    @keyframes flash {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 1; }
+    }
+    .flash { animation: flash 0.5s 2; }
+    #resultText {
+      position: absolute; top: 30%; width: 100%;
+      text-align: center;
+      font-size: 3em; font-weight: bold;
+      display: none; z-index: 3;
+      color: #000; text-shadow: 2px 2px 0 #fff;
+    }
+    #resultText.red { color: #e00000; text-shadow: 2px 2px 0 #fff; }
+    #resultText.gold { color: goldenrod; text-shadow: 2px 2px 5px #000; }
+    .sparkle {
+      position: absolute;
+      font-size: 1.5em;
+      color: #0c0;
+      opacity: 1;
+      pointer-events: none;
+    }
+    .sparkle.animate { animation: sparkle 1s forwards; }
+    @keyframes sparkle {
+      from { transform: scale(0.5); opacity: 1; }
+      to   { transform: scale(1.5); opacity: 0; }
+    }
+    .confetti {
+      position: absolute;
+      width: 8px; height: 8px;
+      background: gold;
+      top: 0; opacity: 0;
+      pointer-events: none;
+    }
+    .confetti.animate { animation: confdrop 2s forwards; }
+    @keyframes confdrop {
+      0%   { opacity: 1; transform: translateY(0) rotate(0deg); }
+      100% { opacity: 1; transform: translateY(100vh) rotate(720deg); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="game-container">
+  <div id="prompt">Press with two fingers</div>
+  <img id="podClosed" class="pod-image" src="pod-closed.png" alt="Closed edamame pod">
+  <img id="podGreen" class="pod-image openPod" src="pod-open-green.png" alt="Opened pod with green beans">
+  <img id="podRed"   class="pod-image openPod" src="pod-open-red.png" alt="Opened pod with red beans">
+  <img id="podGold"  class="pod-image openPod" src="pod-open-gold.png" alt="Opened pod with gold beans">
+  <div id="overlay"></div>
+  <div id="resultText"></div>
+</div>
+
+<script>
+(() => {
+  const container = document.getElementById('game-container');
+  const closedPod = document.getElementById('podClosed');
+  const podGreen  = document.getElementById('podGreen');
+  const podRed    = document.getElementById('podRed');
+  const podGold   = document.getElementById('podGold');
+  const overlay   = document.getElementById('overlay');
+  const resultText= document.getElementById('resultText');
+  const prompt    = document.getElementById('prompt');
+  let animating   = false;
+  function resetGame() {
+    closedPod.style.display = 'block';
+    podGreen.style.display  = 'none';
+    podRed.style.display    = 'none';
+    podGold.style.display   = 'none';
+    overlay.style.display   = 'none';
+    overlay.classList.remove('flash');
+    resultText.style.display= 'none';
+    resultText.innerText    = '';
+    resultText.className    = '';
+    prompt.style.display    = 'block';
+    document.querySelectorAll('.sparkle').forEach(s => s.remove());
+    document.querySelectorAll('.confetti').forEach(c => c.remove());
+    animating = false;
+  }
+  resetGame();
+  function triggerGame() {
+    if (animating) return;
+    animating = true;
+    prompt.style.display = 'none';
+    if (navigator.vibrate) {
+      navigator.vibrate(200);
+    }
+    closedPod.classList.add('shake');
+    const rand = Math.random() * 100;
+    let outcome;
+    if      (rand < 70) outcome = 'green';
+    else if (rand < 90) outcome = 'red';
+    else                outcome = 'gold';
+    setTimeout(() => {
+      closedPod.classList.remove('shake');
+      closedPod.style.display = 'none';
+      let podElement;
+      if (outcome === 'green') { podElement = podGreen; }
+      if (outcome === 'red')   { podElement = podRed; }
+      if (outcome === 'gold')  { podElement = podGold; }
+      if (podElement) {
+        podElement.style.display = 'block';
+      }
+      if (outcome === 'green') {
+        for (let i = 0; i < 5; i++) {
+          const sp = document.createElement('div');
+          sp.className = 'sparkle';
+          sp.textContent = '✨';
+          const rect = podElement.getBoundingClientRect();
+          const x = rect.left + Math.random() * rect.width;
+          const y = rect.top + Math.random() * (rect.height * 0.5);
+          sp.style.left = x + 'px';
+          sp.style.top  = y + 'px';
+          container.appendChild(sp);
+          setTimeout(() => { sp.classList.add('animate'); }, 50);
+        }
+      } else if (outcome === 'red') {
+        overlay.style.display = 'block';
+        overlay.classList.add('flash');
+        resultText.innerText = 'Batsu!';
+        resultText.classList.add('red');
+        resultText.style.display = 'block';
+      } else if (outcome === 'gold') {
+        resultText.innerText = 'Jackpot!';
+        resultText.classList.add('gold');
+        resultText.style.display = 'block';
+        const colors = ['gold', 'gold', 'gold', 'yellow', 'orange', 'goldenrod'];
+        for (let j = 0; j < 20; j++) {
+          const conf = document.createElement('div');
+          conf.className = 'confetti';
+          conf.style.left = Math.random() * 100 + '%';
+          conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+          const delay = (Math.random() * 1.5).toFixed(2);
+          conf.style.animationDelay = delay + 's';
+          container.appendChild(conf);
+          setTimeout(() => { conf.classList.add('animate'); }, 50);
+        }
+      }
+      setTimeout(resetGame, 3000);
+    }, 500);
+  }
+  container.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 1 && !animating) {
+      e.preventDefault();
+      triggerGame();
+    }
+  }, { passive: false });
+  container.addEventListener('dblclick', () => {
+    if (!animating) triggerGame();
+  });
+})();
+</script>
+
+</body>
+</html> 
