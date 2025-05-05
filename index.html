@@ -96,13 +96,22 @@
     .flash { animation: flash 0.5s 2; }
     #resultText {
       position: absolute; top: 30%; left: 50%; transform: translateX(-50%);
-      width: 100vw;
+      max-width: 90vw;
+      width: auto;
       text-align: center;
       font-size: 3em; font-weight: bold;
       display: none; z-index: 3;
       color: #000; text-shadow: 2px 2px 0 #fff;
       pointer-events: none;
       opacity: 0;
+      white-space: nowrap;
+      overflow: visible;
+      box-sizing: border-box;
+    }
+    @media (max-width: 400px) {
+      #resultText {
+        font-size: 2em;
+      }
     }
     #resultText.red {
       color: #e00000;
