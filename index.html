@@ -7,29 +7,51 @@
   <style>
     body { margin: 0; background: #fff; color: #333; text-align: center; 
            font-family: sans-serif; overflow: hidden; }
-    #game-container { position: relative; width: 100%; height: 100vh; }
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
     #prompt {
-      position: absolute; top: 10%; width: 100%; 
-      font-size: 2em; font-weight: bold;
+      position: absolute;
+      top: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      font-size: 2em;
+      font-weight: bold;
+      z-index: 10;
+      pointer-events: none;
     }
     .pod-image {
-      position: absolute; bottom: 5%; left: 50%;
-      transform: translateX(-50%); 
-      max-width: 50%; height: auto;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 50vw;
+      max-height: 40vh;
+      height: auto;
       z-index: 1;
+      pointer-events: none;
     }
     .openPod { display: none; }
     .shake { animation: shake 0.5s; }
     @keyframes shake {
-      0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
-      20%, 60% { transform: translateX(-10px) rotate(-8deg); }
-      40%, 80% { transform: translateX(10px) rotate(8deg); }
+      0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+      20%, 60% { transform: translate(calc(-50% - 10px), -50%) rotate(-8deg); }
+      40%, 80% { transform: translate(calc(-50% + 10px), -50%) rotate(8deg); }
     }
     #overlay {
       position: absolute; top: 0; left: 0;
-      width: 100%; height: 100%;
+      width: 100vw; height: 100vh;
       background: rgba(255,0,0,0.5);
       display: none; z-index: 2;
+      pointer-events: none;
     }
     @keyframes flash {
       0%, 100% { opacity: 0; }
@@ -37,11 +59,13 @@
     }
     .flash { animation: flash 0.5s 2; }
     #resultText {
-      position: absolute; top: 30%; width: 100%;
+      position: absolute; top: 30%; left: 50%; transform: translateX(-50%);
+      width: 100vw;
       text-align: center;
       font-size: 3em; font-weight: bold;
       display: none; z-index: 3;
       color: #000; text-shadow: 2px 2px 0 #fff;
+      pointer-events: none;
     }
     #resultText.red { color: #e00000; text-shadow: 2px 2px 0 #fff; }
     #resultText.gold { color: goldenrod; text-shadow: 2px 2px 5px #000; }
@@ -51,6 +75,7 @@
       color: #0c0;
       opacity: 1;
       pointer-events: none;
+      z-index: 5;
     }
     .sparkle.animate { animation: sparkle 1s forwards; }
     @keyframes sparkle {
@@ -63,6 +88,7 @@
       background: gold;
       top: 0; opacity: 0;
       pointer-events: none;
+      z-index: 5;
     }
     .confetti.animate { animation: confdrop 2s forwards; }
     @keyframes confdrop {
@@ -134,15 +160,19 @@
         podElement.style.display = 'block';
       }
       if (outcome === 'green') {
+        const podRect = podElement.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
         for (let i = 0; i < 5; i++) {
           const sp = document.createElement('div');
           sp.className = 'sparkle';
           sp.textContent = '✨';
-          const rect = podElement.getBoundingClientRect();
-          const x = rect.left + Math.random() * rect.width;
-          const y = rect.top + Math.random() * (rect.height * 0.5);
-          sp.style.left = x + 'px';
-          sp.style.top  = y + 'px';
+          // Position sparkles randomly around the center of the pod
+          const angle = Math.random() * 2 * Math.PI;
+          const radius = 40 + Math.random() * 30;
+          const centerX = podRect.left + podRect.width / 2 - containerRect.left;
+          const centerY = podRect.top + podRect.height / 2 - containerRect.top;
+          sp.style.left = (centerX + Math.cos(angle) * radius) + 'px';
+          sp.style.top  = (centerY + Math.sin(angle) * radius) + 'px';
           container.appendChild(sp);
           setTimeout(() => { sp.classList.add('animate'); }, 50);
         }
@@ -184,4 +214,4 @@
 </script>
 
 </body>
-</html> 
+</html>
