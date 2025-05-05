@@ -22,10 +22,6 @@
       top: 0; left: 0;
       width: 100vw;
       height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
       overflow: hidden;
       background: #fff;
     }
@@ -40,27 +36,25 @@
       z-index: 10;
       pointer-events: none;
     }
+    #pod-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
     .pod-image {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      max-width: 60vw;
+      max-width: 80vw;
       max-height: 40vh;
       width: auto;
       height: auto;
-      z-index: 1;
       pointer-events: none;
       box-sizing: border-box;
-    }
-    @media (orientation: portrait) {
-      .pod-image {
-        max-width: 80vw;
-        max-height: 40vh;
-      }
-      #prompt {
-        font-size: 2.2em;
-      }
+      /* Remove position: absolute and centering transforms */
+      display: block;
+      margin: 0 auto;
     }
     @media (orientation: landscape) {
       .pod-image {
@@ -74,9 +68,9 @@
     .openPod { display: none; }
     .shake { animation: shake 0.5s; }
     @keyframes shake {
-      0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
-      20%, 60% { transform: translate(calc(-50% - 10px), -50%) rotate(-8deg); }
-      40%, 80% { transform: translate(calc(-50% + 10px), -50%) rotate(8deg); }
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      20%, 60% { transform: scale(1.05) rotate(-8deg); }
+      40%, 80% { transform: scale(1.05) rotate(8deg); }
     }
     #overlay {
       position: fixed; top: 0; left: 0;
@@ -154,10 +148,12 @@
 
 <div id="game-container">
   <div id="prompt">Press with two fingers</div>
-  <img id="podClosed" class="pod-image" src="pod-closed.png" alt="Closed edamame pod">
-  <img id="podGreen" class="pod-image openPod" src="pod-open-green.png" alt="Opened pod with green beans">
-  <img id="podRed"   class="pod-image openPod" src="pod-open-red.png" alt="Opened pod with red beans">
-  <img id="podGold"  class="pod-image openPod" src="pod-open-gold.png" alt="Opened pod with gold beans">
+  <div id="pod-wrapper">
+    <img id="podClosed" class="pod-image" src="pod-closed.png" alt="Closed edamame pod">
+    <img id="podGreen" class="pod-image openPod" src="pod-open-green.png" alt="Opened pod with green beans">
+    <img id="podRed"   class="pod-image openPod" src="pod-open-red.png" alt="Opened pod with red beans">
+    <img id="podGold"  class="pod-image openPod" src="pod-open-gold.png" alt="Opened pod with gold beans">
+  </div>
   <div id="overlay"></div>
   <div id="resultText"></div>
 </div>
@@ -165,6 +161,7 @@
 <script>
 (() => {
   const container = document.getElementById('game-container');
+  const podWrapper = document.getElementById('pod-wrapper');
   const closedPod = document.getElementById('podClosed');
   const podGreen  = document.getElementById('podGreen');
   const podRed    = document.getElementById('podRed');
@@ -214,7 +211,7 @@
       }
       if (outcome === 'green') {
         const podRect = podElement.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
+        const containerRect = podWrapper.getBoundingClientRect();
         for (let i = 0; i < 5; i++) {
           const sp = document.createElement('div');
           sp.className = 'sparkle';
@@ -226,7 +223,7 @@
           const centerY = podRect.top + podRect.height / 2 - containerRect.top;
           sp.style.left = (centerX + Math.cos(angle) * radius) + 'px';
           sp.style.top  = (centerY + Math.sin(angle) * radius) + 'px';
-          container.appendChild(sp);
+          podWrapper.appendChild(sp);
           setTimeout(() => { sp.classList.add('animate'); }, 50);
         }
       } else if (outcome === 'red') {
@@ -247,7 +244,7 @@
           conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
           const delay = (Math.random() * 1.5).toFixed(2);
           conf.style.animationDelay = delay + 's';
-          container.appendChild(conf);
+          podWrapper.appendChild(conf);
           setTimeout(() => { conf.classList.add('animate'); }, 50);
         }
       }
